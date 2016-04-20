@@ -9,8 +9,11 @@
     
     <modules>
         <module>api</module>
+        <module>core</module>
         <module>dropwizard</module>
         <module>test-rest</module>
+        <module>vod-rest</module>
+        <module>vod-system</module>
     </modules>
     
     <properties>
@@ -19,6 +22,7 @@
         <maven.compiler.target>1.7</maven.compiler.target>
         <kompics.version>0.9.1-SNAPSHOT</kompics.version>
         <ktoolbox.version>2.0.1-SNAPSHOT</ktoolbox.version>
+        <vod.version>0.0.8-SNAPSHOT</vod.version>
         <dropwizard.version>0.6.2</dropwizard.version>
         <jetty.version>8.1.10.v20130312</jetty.version>
         <logger.version>1.7.5</logger.version>

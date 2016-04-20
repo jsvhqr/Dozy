@@ -16,17 +16,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package se.sics.dozy;
-
-import com.google.common.util.concurrent.SettableFuture;
-import se.sics.kompics.KompicsEvent;
-import se.sics.ktoolbox.util.identifiable.Identifiable;
-import se.sics.ktoolbox.util.identifiable.Identifier;
+package se.sics.dozy.vod;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
-public interface DozySyncI {
-    public boolean isReady();
-    public <E extends KompicsEvent & Identifiable> SettableFuture<DozyResult> sendReq(E req, long timeout);
+public class DozyVoD {
+    public static final String dozyName = "vod-library";
 }
