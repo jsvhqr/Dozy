@@ -13,5 +13,5 @@ mvn clean install
 > One recurring problem is relative paths not working. Use absolute paths.
 
 ```sh
-java -Dlog4j.configuration=file:${LOG4J_PROPERTIES_PATH} -Dconfig.file=${CONFIG_FILE_PATH} -jar ${JAR}
+java -Dconfig.file=${CONFIG_FILE_PATH} -jar ${JAR}
 ```
