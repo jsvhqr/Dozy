@@ -35,11 +35,14 @@ import se.sics.gvod.mngr.event.VideoPlayEvent;
 import se.sics.gvod.mngr.event.VideoStopEvent;
 import se.sics.gvod.mngr.util.FileInfo;
 import se.sics.gvod.mngr.util.TorrentInfo;
+import se.sics.gvod.mngr.util.TorrentStatus;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Handler;
 import se.sics.kompics.Negative;
 import se.sics.kompics.Start;
 import se.sics.ktoolbox.util.identifiable.Identifier;
+import se.sics.ktoolbox.util.identifiable.basic.IntIdentifier;
+import se.sics.ktoolbox.util.network.KAddress;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
@@ -73,6 +76,13 @@ public class VoDMngrMockComp extends ComponentDefinition {
         @Override
         public void handle(Start event) {
             LOG.info("{}starting...", logPrefix);
+
+            libraryContents.put(new IntIdentifier(1), Pair.with(
+                    new FileInfo("test1", "/root/test1", 1024, "test file 1"),
+                    TorrentInfo.none()));
+            libraryContents.put(new IntIdentifier(2), Pair.with(
+                    new FileInfo("test2", "/root/test2", 2024, "test file 2"),
+                    TorrentInfo.none()));
         }
     };
 
@@ -105,22 +115,76 @@ public class VoDMngrMockComp extends ComponentDefinition {
 
     Handler handleTorrentUpload = new Handler<TorrentUploadEvent.Request>() {
         @Override
-        public void handle(TorrentUploadEvent.Request event) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        public void handle(TorrentUploadEvent.Request req) {
+            LOG.info("{}received:{}", logPrefix, req);
+            TorrentUploadEvent.Response resp;
+            if (libraryContents.containsKey(req.overlayId)) {
+                Pair<FileInfo, TorrentInfo> elementInfo = libraryContents.get(req.overlayId);
+                if (!elementInfo.getValue1().status.equals(TorrentStatus.NONE)) {
+                    resp = req.badRequest("bad status");
+                } else {
+                    Map<Identifier, KAddress> partners = new HashMap<>();
+                    TorrentInfo torrentInfo = new TorrentInfo(TorrentStatus.UPLOADING, partners, 1, 0, 0);
+                    libraryContents.put(req.overlayId, Pair.with(elementInfo.getValue0(), torrentInfo));
+                    resp = req.success();
+                }
+
+            } else {
+                resp = req.badRequest("missing");
+            }
+            LOG.info("{}answering:{}", logPrefix, resp);
+            answer(req, resp);
         }
     };
 
     Handler handleTorrentDownload = new Handler<TorrentDownloadEvent.Request>() {
         @Override
-        public void handle(TorrentDownloadEvent.Request event) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        public void handle(TorrentDownloadEvent.Request req) {
+            LOG.info("{}received:{}", logPrefix, req);
+            TorrentDownloadEvent.Response resp;
+            if (!libraryContents.containsKey(req.overlayId)) {
+                FileInfo fileInfo = new FileInfo(req.fileName, "", 0, "");
+                Map<Identifier, KAddress> partners = new HashMap<>();
+                TorrentInfo torrentInfo = new TorrentInfo(TorrentStatus.DOWNLOADING, partners, 0, 0, 0);
+                libraryContents.put(req.overlayId, Pair.with(fileInfo, torrentInfo));
+                resp = req.success();
+            } else {
+                resp = req.badRequest("file exists");
+            }
+            LOG.info("{}answering:{}", logPrefix, resp);
+            answer(req, resp);
         }
     };
 
     Handler handleTorrentStop = new Handler<TorrentStopEvent.Request>() {
         @Override
-        public void handle(TorrentStopEvent.Request event) {
-            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        public void handle(TorrentStopEvent.Request req) {
+            LOG.info("{}received:{}", logPrefix, req);
+            TorrentStopEvent.Response resp;
+            if (libraryContents.containsKey(req.overlayId)) {
+                Pair<FileInfo, TorrentInfo> elementInfo = libraryContents.get(req.overlayId);
+                switch (elementInfo.getValue1().status) {
+                    case NONE:
+                        resp = req.badRequest("bad status");
+                        break;
+                    case UPLOADING:
+                        Map<Identifier, KAddress> partners = new HashMap<>();
+                        TorrentInfo torrentInfo = new TorrentInfo(TorrentStatus.NONE, partners, 0, 0, 0);
+                        libraryContents.put(req.overlayId, Pair.with(elementInfo.getValue0(), torrentInfo));
+                        resp = req.success();
+                        break;
+                    case DOWNLOADING:
+                        libraryContents.remove(req.overlayId);
+                        resp = req.success();
+                        break;
+                    default:
+                        resp = req.badRequest("mock logic error");
+                }
+            } else {
+                resp = req.badRequest("missing");
+            }
+            LOG.info("{}answering:{}", logPrefix, resp);
+            answer(req, resp);
         }
     };
 
