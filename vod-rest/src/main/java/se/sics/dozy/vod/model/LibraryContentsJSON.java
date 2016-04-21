@@ -22,36 +22,37 @@ import java.util.HashMap;
 import java.util.Map;
 import org.javatuples.Pair;
 import se.sics.gvod.mngr.event.LibraryContentsEvent;
-import se.sics.gvod.mngr.util.TorrentStatus;
 import se.sics.gvod.mngr.util.FileInfo;
 import se.sics.gvod.mngr.util.TorrentInfo;
 import se.sics.ktoolbox.util.identifiable.Identifier;
-import se.sics.ktoolbox.util.identifiable.basic.IntIdentifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
 public class LibraryContentsJSON {
-    private  Map<Integer, Pair<String, TorrentStatus>> contents;
-    
-    public LibraryContentsJSON( Map<Integer, Pair<String, TorrentStatus>> contents) {
+
+    //<file, torrentStatus>
+    private Map<FileDescJSON, String> contents = new HashMap<>();
+
+    public LibraryContentsJSON(Map<FileDescJSON, String> contents) {
         this.contents = contents;
     }
-    
-    public LibraryContentsJSON() {}
 
-    public  Map<Integer, Pair<String, TorrentStatus>> getContents() {
+    public LibraryContentsJSON() {
+    }
+
+    public Map<FileDescJSON, String> getContents() {
         return contents;
     }
 
-    public void setContents( Map<Integer, Pair<String, TorrentStatus>> contents) {
+    public void setContents(Map<FileDescJSON, String> contents) {
         this.contents = contents;
     }
-    
+
     public static LibraryContentsJSON resolve(LibraryContentsEvent.Response vodResp) {
-        Map<Integer, Pair<String, TorrentStatus>> contents = new HashMap<>();
-        for(Map.Entry<Identifier, Pair<FileInfo, TorrentInfo>> e : vodResp.content.entrySet()) {
-            contents.put(((IntIdentifier)e.getKey()).id, Pair.with(e.getValue().getValue0().name, e.getValue().getValue1().status));
+        Map<FileDescJSON, String> contents = new HashMap<>();
+        for (Map.Entry<Identifier, Pair<FileInfo, TorrentInfo>> e : vodResp.content.entrySet()) {
+            contents.put(FileDescJSON.resolve(e.getKey(), e.getValue().getValue0()), e.getValue().getValue1().status.name());
         }
         return new LibraryContentsJSON(contents);
     }

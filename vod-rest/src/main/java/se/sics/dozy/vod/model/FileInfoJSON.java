@@ -19,19 +19,25 @@
 package se.sics.dozy.vod.model;
 
 import se.sics.gvod.mngr.util.FileInfo;
-import se.sics.ktoolbox.util.identifiable.Identifier;
-import se.sics.ktoolbox.util.identifiable.basic.IntIdentifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
-public class FileDescJSON {
-    private String name;
-    private int identifier;
-    
-    public FileDescJSON(int identifier, String name) {
-        this.identifier = identifier;
+public class FileInfoJSON {
+
+    private String name; //short name
+    private String uri; //long name unique resource identifier - path, etc...
+    private long size;
+    private String description; //short description; 256 char max.
+
+    public FileInfoJSON(String name, String uri, long size, String description) {
         this.name = name;
+        this.uri = uri;
+        this.size = size;
+        this.description = description;
+    }
+
+    public FileInfoJSON() {
     }
 
     public String getName() {
@@ -42,37 +48,31 @@ public class FileDescJSON {
         this.name = name;
     }
 
-    public int getIdentifier() {
-        return identifier;
+    public String getUri() {
+        return uri;
     }
 
-    public void setIdentifier(int identifier) {
-        this.identifier = identifier;
+    public void setUri(String uri) {
+        this.uri = uri;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 97 * hash + this.identifier;
-        return hash;
+    public long getSize() {
+        return size;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final FileDescJSON other = (FileDescJSON) obj;
-        if (this.identifier != other.identifier) {
-            return false;
-        }
-        return true;
+    public void setSize(long size) {
+        this.size = size;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
     
-    public static FileDescJSON resolve(Identifier overlayId, FileInfo fileInfo) {
-        return new FileDescJSON(((IntIdentifier)overlayId).id, fileInfo.name);
+    public static FileInfoJSON resolve(FileInfo fileInfo) {
+        return new FileInfoJSON(fileInfo.name, fileInfo.uri, fileInfo.size, fileInfo.shortDescription);
     }
 }

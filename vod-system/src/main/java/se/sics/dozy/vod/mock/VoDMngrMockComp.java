@@ -91,7 +91,8 @@ public class VoDMngrMockComp extends ComponentDefinition {
         public void handle(LibraryElementEvent.Request req) {
             LOG.info("{}received:{}", logPrefix, req);
             if (libraryContents.containsKey(req.overlayId)) {
-                LibraryElementEvent.Response resp = req.success(libraryContents.get(req.overlayId).getValue1());
+                Pair<FileInfo, TorrentInfo> elementInfo = libraryContents.get(req.overlayId);
+                LibraryElementEvent.Response resp = req.success(elementInfo.getValue0(), elementInfo.getValue1());
                 LOG.info("{}answering:{}", logPrefix, resp);
                 answer(req, resp);
             } else {

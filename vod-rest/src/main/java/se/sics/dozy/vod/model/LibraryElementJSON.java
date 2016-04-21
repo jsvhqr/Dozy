@@ -19,50 +19,48 @@
 package se.sics.dozy.vod.model;
 
 import se.sics.gvod.mngr.event.LibraryElementEvent;
-import se.sics.gvod.mngr.util.TorrentStatus;
-import se.sics.ktoolbox.util.identifiable.basic.IntIdentifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
 public class LibraryElementJSON {
-    private int overlayId;
-    private String fileName;
-    private TorrentStatus status;
+    private FileInfoJSON fileInfo;
+    private String torrentStatus;
+    private TorrentInfoJSON torrentInfo;
     
-    public LibraryElementJSON(int overlayId, String fileName, TorrentStatus status) {
-        this.overlayId = overlayId;
-        this.fileName = fileName;
-        this.status = status;
+    public LibraryElementJSON(FileInfoJSON fileInfo, String torrentStatus, TorrentInfoJSON torrentInfo) {
+        this.fileInfo = fileInfo;
+        this.torrentStatus = torrentStatus;
+        this.torrentInfo = torrentInfo;
     }
     
     public LibraryElementJSON() {}
 
-    public int getOverlayId() {
-        return overlayId;
+    public FileInfoJSON getFileInfo() {
+        return fileInfo;
     }
 
-    public void setOverlayId(int overlayId) {
-        this.overlayId = overlayId;
+    public void setFileInfo(FileInfoJSON fileInfo) {
+        this.fileInfo = fileInfo;
     }
 
-    public String getFileName() {
-        return fileName;
+    public String getTorrentStatus() {
+        return torrentStatus;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
+    public void setTorrentStatus(String torrentStatus) {
+        this.torrentStatus = torrentStatus;
     }
 
-    public TorrentStatus getStatus() {
-        return status;
+    public TorrentInfoJSON getTorrentInfo() {
+        return torrentInfo;
     }
 
-    public void setStatus(TorrentStatus status) {
-        this.status = status;
+    public void setTorrentInfo(TorrentInfoJSON torrentInfo) {
+        this.torrentInfo = torrentInfo;
     }
 
     public static LibraryElementJSON resolve(LibraryElementEvent.Response vodResp) {
-        return new LibraryElementJSON(((IntIdentifier)vodResp.req.overlayId).id, vodResp.req.fileName, vodResp.content.status);
+        return new LibraryElementJSON(FileInfoJSON.resolve(vodResp.fileInfo), vodResp.torrentInfo.status.name(), TorrentInfoJSON.resolve(vodResp.torrentInfo));
     }
 }

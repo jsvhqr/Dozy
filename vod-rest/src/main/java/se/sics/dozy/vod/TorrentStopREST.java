@@ -75,7 +75,7 @@ public class TorrentStopREST implements DozyResource {
             return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(new ErrorDescJSON("vod not ready")).build();
         }
 
-        TorrentStopEvent.Request request = new TorrentStopEvent.Request(fileInfo.getName(), new IntIdentifier(fileInfo.getOverlayId()));
+        TorrentStopEvent.Request request = new TorrentStopEvent.Request(fileInfo.getName(), new IntIdentifier(fileInfo.getIdentifier()));
         LOG.debug("waiting for stop:{}<{}> response", request.fileName, request.eventId);
         DozyResult<TorrentStopEvent.Response> result = vod.sendReq(request, timeout);
         Pair<Response.Status, String> wsStatus = ResponseStatusMapper.resolveTorrentStop(result);

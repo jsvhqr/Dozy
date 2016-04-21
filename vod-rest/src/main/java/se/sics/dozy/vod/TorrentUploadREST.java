@@ -75,7 +75,7 @@ public class TorrentUploadREST implements DozyResource {
             return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(new ErrorDescJSON("vod not ready")).build();
         }
 
-        TorrentUploadEvent.Request request = new TorrentUploadEvent.Request(fileInfo.getName(), new IntIdentifier(fileInfo.getOverlayId()));
+        TorrentUploadEvent.Request request = new TorrentUploadEvent.Request(fileInfo.getName(), new IntIdentifier(fileInfo.getIdentifier()));
         LOG.debug("waiting for upload:{}<{}> response", request.fileName, request.eventId);
         DozyResult<TorrentUploadEvent.Response> result = vod.sendReq(request, timeout);
         Pair<Response.Status, String> wsStatus = ResponseStatusMapper.resolveTorrentUpload(result);

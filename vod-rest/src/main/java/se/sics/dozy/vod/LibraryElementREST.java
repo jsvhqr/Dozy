@@ -75,7 +75,7 @@ public class LibraryElementREST implements DozyResource {
             return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(new ErrorDescJSON("vod not ready")).build();
         }
 
-        LibraryElementEvent.Request request = new LibraryElementEvent.Request(fileInfo.getName(), new IntIdentifier(fileInfo.getOverlayId()));
+        LibraryElementEvent.Request request = new LibraryElementEvent.Request(fileInfo.getName(), new IntIdentifier(fileInfo.getIdentifier()));
         LOG.debug("waiting for library element:{} response", request.eventId);
         DozyResult<LibraryElementEvent.Response> result = vod.sendReq(request, timeout);
         Pair<Response.Status, String> wsStatus = ResponseStatusMapper.resolveLibraryElement(result);
