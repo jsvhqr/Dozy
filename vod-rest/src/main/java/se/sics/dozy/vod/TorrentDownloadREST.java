@@ -51,13 +51,13 @@ public class TorrentDownloadREST implements DozyResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(DozyResource.class);
 
-    private DozySyncI vod = null;
+    private DozySyncI torrent = null;
 
     @Override
     public void setSyncInterfaces(Map<String, DozySyncI> interfaces) {
-        vod = interfaces.get(DozyVoD.libraryDozyName);
-        if (vod == null) {
-            throw new RuntimeException("no sync interface found for vod REST API");
+        torrent = interfaces.get(DozyVoD.torrentDozyName);
+        if (torrent == null) {
+            throw new RuntimeException("no sync interface found for vod torrent REST API");
         }
     }
 
@@ -71,13 +71,13 @@ public class TorrentDownloadREST implements DozyResource {
     public Response pendingUpload(FileDescJSON fileInfo) {
         LOG.info("received download torrent request:{}", fileInfo.getName());
 
-        if (!vod.isReady()) {
+        if (!torrent.isReady()) {
             return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(new ErrorDescJSON("vod not ready")).build();
         }
 
         TorrentDownloadEvent.Request request = new TorrentDownloadEvent.Request(fileInfo.getName(), new IntIdentifier(fileInfo.getIdentifier()));
         LOG.debug("waiting for upload:{}<{}> response", request.fileName, request.eventId);
-        DozyResult<TorrentDownloadEvent.Response> result = vod.sendReq(request, timeout);
+        DozyResult<TorrentDownloadEvent.Response> result = torrent.sendReq(request, timeout);
         Pair<Response.Status, String> wsStatus = ResponseStatusMapper.resolveTorrentDownload(result);
         LOG.info("upload:{}<{}> status:{} details:{}", new Object[]{request.eventId, request.fileName, wsStatus.getValue0(), wsStatus.getValue1()});
         if (wsStatus.getValue0().equals(Response.Status.OK)) {

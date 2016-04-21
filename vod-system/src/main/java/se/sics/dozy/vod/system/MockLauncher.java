@@ -32,10 +32,17 @@ import se.sics.dozy.dropwizard.DropwizardDozy;
 import se.sics.dozy.vod.DozyVoD;
 import se.sics.dozy.vod.LibraryContentsREST;
 import se.sics.dozy.vod.LibraryElementREST;
+import se.sics.dozy.vod.TorrentDownloadREST;
+import se.sics.dozy.vod.TorrentStopREST;
+import se.sics.dozy.vod.TorrentUploadREST;
 import se.sics.dozy.vod.mock.VoDMngrMockComp;
 import se.sics.gvod.mngr.LibraryPort;
+import se.sics.gvod.mngr.TorrentPort;
 import se.sics.gvod.mngr.event.LibraryContentsEvent;
 import se.sics.gvod.mngr.event.LibraryElementEvent;
+import se.sics.gvod.mngr.event.TorrentDownloadEvent;
+import se.sics.gvod.mngr.event.TorrentStopEvent;
+import se.sics.gvod.mngr.event.TorrentUploadEvent;
 import se.sics.kompics.Channel;
 import se.sics.kompics.Component;
 import se.sics.kompics.ComponentDefinition;
@@ -60,6 +67,7 @@ public class MockLauncher extends ComponentDefinition {
     private Component timerComp;
     private Component vodMockComp;
     private Component librarySyncIComp;
+    private Component torrentSyncIComp;
     private DropwizardDozy webserver;
 
     public MockLauncher() {
@@ -76,11 +84,13 @@ public class MockLauncher extends ComponentDefinition {
             timerComp = create(JavaTimer.class, Init.NONE);
             setVoDMock();
             setLibrarySyncI();
+            setTorrentSyncI();
             setWebserver();
 
             trigger(Start.event, timerComp.control());
             trigger(Start.event, vodMockComp.control());
             trigger(Start.event, librarySyncIComp.control());
+            trigger(Start.event, torrentSyncIComp.control());
             startWebserver();
         }
     };
@@ -98,13 +108,27 @@ public class MockLauncher extends ComponentDefinition {
         connect(librarySyncIComp.getNegative(LibraryPort.class), vodMockComp.getPositive(LibraryPort.class), Channel.TWO_WAY);
     }
 
+    private void setTorrentSyncI() {
+        List<Class<? extends KompicsEvent>> resp = new ArrayList<>();
+        resp.add(TorrentDownloadEvent.Response.class);
+        resp.add(TorrentUploadEvent.Response.class);
+        resp.add(TorrentStopEvent.Response.class);
+        torrentSyncIComp = create(DozySyncComp.class, new DozySyncComp.Init(TorrentPort.class, resp));
+        connect(torrentSyncIComp.getNegative(Timer.class), timerComp.getPositive(Timer.class), Channel.TWO_WAY);
+        connect(torrentSyncIComp.getNegative(TorrentPort.class), vodMockComp.getPositive(TorrentPort.class), Channel.TWO_WAY);
+    }
+
     private void setWebserver() {
         Map<String, DozySyncI> synchronousInterfaces = new HashMap<>();
         synchronousInterfaces.put(DozyVoD.libraryDozyName, (DozySyncI) librarySyncIComp.getComponent());
+        synchronousInterfaces.put(DozyVoD.torrentDozyName, (DozySyncI) torrentSyncIComp.getComponent());
 
         List<DozyResource> resources = new ArrayList<>();
         resources.add(new LibraryContentsREST());
         resources.add(new LibraryElementREST());
+        resources.add(new TorrentDownloadREST());
+        resources.add(new TorrentUploadREST());
+        resources.add(new TorrentStopREST());
 
         webserver = new DropwizardDozy(synchronousInterfaces, resources);
     }

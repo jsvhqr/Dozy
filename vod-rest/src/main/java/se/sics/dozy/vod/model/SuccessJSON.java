@@ -19,9 +19,20 @@
 package se.sics.dozy.vod.model;
 
 /**
- *
  * @author Alex Ormenisan <aaor@kth.se>
  */
 public class SuccessJSON {
-    public SuccessJSON() {}
+    private String details;
+
+    public SuccessJSON() {
+        this.details = "";
+    }
+
+    public String getDetails() {
+        return details;
+    }
+
+    public void setDetails(String details) {
+        this.details = details;
+    }
 }

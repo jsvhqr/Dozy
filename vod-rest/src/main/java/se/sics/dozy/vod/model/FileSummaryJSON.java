@@ -19,22 +19,26 @@
 package se.sics.dozy.vod.model;
 
 import se.sics.gvod.mngr.util.FileInfo;
+import se.sics.gvod.mngr.util.TorrentInfo;
 import se.sics.ktoolbox.util.identifiable.Identifier;
 import se.sics.ktoolbox.util.identifiable.basic.IntIdentifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
-public class FileDescJSON {
+public class FileSummaryJSON {
+
     private String name;
     private int identifier;
+    private String status;
     
-    public FileDescJSON(int identifier, String name) {
-        this.identifier = identifier;
+    public FileSummaryJSON(String name, int identifier, String status) {
         this.name = name;
+        this.identifier = identifier;
+        this.status = status;
     }
-    
-    public FileDescJSON() {
+
+    public FileSummaryJSON() {
     }
 
     public String getName() {
@@ -53,29 +57,15 @@ public class FileDescJSON {
         this.identifier = identifier;
     }
 
-    @Override
-    public int hashCode() {
-        int hash = 7;
-        hash = 97 * hash + this.identifier;
-        return hash;
+    public String getStatus() {
+        return status;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final FileDescJSON other = (FileDescJSON) obj;
-        if (this.identifier != other.identifier) {
-            return false;
-        }
-        return true;
+    public void setStatus(String status) {
+        this.status = status;
     }
-    
-    public static FileDescJSON resolve(Identifier overlayId, FileInfo fileInfo) {
-        return new FileDescJSON(((IntIdentifier)overlayId).id, fileInfo.name);
+
+    public static FileSummaryJSON resolve(Identifier overlayId, FileInfo fileInfo, TorrentInfo torrentInfo) {
+        return new FileSummaryJSON(fileInfo.name, ((IntIdentifier)overlayId).id, torrentInfo.status.name());
     }
 }

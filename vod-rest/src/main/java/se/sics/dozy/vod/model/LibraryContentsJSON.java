@@ -18,7 +18,8 @@
  */
 package se.sics.dozy.vod.model;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import org.javatuples.Pair;
 import se.sics.gvod.mngr.event.LibraryContentsEvent;
@@ -32,27 +33,27 @@ import se.sics.ktoolbox.util.identifiable.Identifier;
 public class LibraryContentsJSON {
 
     //<file, torrentStatus>
-    private Map<FileDescJSON, String> contents = new HashMap<>();
+    private List<FileSummaryJSON> contents = new ArrayList<>();
 
-    public LibraryContentsJSON(Map<FileDescJSON, String> contents) {
+    public LibraryContentsJSON(List<FileSummaryJSON> contents) {
         this.contents = contents;
     }
 
     public LibraryContentsJSON() {
     }
 
-    public Map<FileDescJSON, String> getContents() {
+    public List<FileSummaryJSON> getContents() {
         return contents;
     }
 
-    public void setContents(Map<FileDescJSON, String> contents) {
+    public void setContents(List<FileSummaryJSON> contents) {
         this.contents = contents;
     }
 
     public static LibraryContentsJSON resolve(LibraryContentsEvent.Response vodResp) {
-        Map<FileDescJSON, String> contents = new HashMap<>();
+        List<FileSummaryJSON> contents = new ArrayList<>();
         for (Map.Entry<Identifier, Pair<FileInfo, TorrentInfo>> e : vodResp.content.entrySet()) {
-            contents.put(FileDescJSON.resolve(e.getKey(), e.getValue().getValue0()), e.getValue().getValue1().status.name());
+            contents.add(FileSummaryJSON.resolve(e.getKey(), e.getValue().getValue0(), e.getValue().getValue1()));
         }
         return new LibraryContentsJSON(contents);
     }
