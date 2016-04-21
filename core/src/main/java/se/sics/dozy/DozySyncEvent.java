@@ -16,12 +16,23 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package se.sics.dozy.vod;
+package se.sics.dozy;
+
+import com.google.common.util.concurrent.SettableFuture;
+import se.sics.kompics.KompicsEvent;
+import se.sics.ktoolbox.util.identifiable.Identifiable;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
-public class DozyVoD {
-    public static final String libraryDozyName = "vod-library";
-    public static final String torrentDozyName = "vod-torrent";
+public class DozySyncEvent<E extends KompicsEvent & Identifiable> implements KompicsEvent {
+    public final E req;
+    public final SettableFuture result;
+    public final long timeout;
+    
+    public DozySyncEvent(E req, SettableFuture result, long timeout) {
+        this.req = req;
+        this.result = result;
+        this.timeout = timeout;
+    }
 }

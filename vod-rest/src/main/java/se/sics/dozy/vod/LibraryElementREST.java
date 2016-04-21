@@ -18,9 +18,7 @@
  */
 package se.sics.dozy.vod;
 
-import com.google.common.util.concurrent.SettableFuture;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -33,7 +31,8 @@ import org.slf4j.LoggerFactory;
 import se.sics.dozy.DozyResource;
 import se.sics.dozy.DozyResult;
 import se.sics.dozy.DozySyncI;
-import se.sics.dozy.vod.model.FileInfoJSON;
+import se.sics.dozy.vod.model.ErrorDescJSON;
+import se.sics.dozy.vod.model.FileDescJSON;
 import se.sics.dozy.vod.model.LibraryElementJSON;
 import se.sics.dozy.vod.util.ResponseStatusMapper;
 import se.sics.gvod.mngr.event.LibraryElementEvent;
@@ -46,6 +45,7 @@ import se.sics.ktoolbox.util.identifiable.basic.IntIdentifier;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 public class LibraryElementREST implements DozyResource {
+
     //TODO Alex - make into config?
     public static long timeout = 5000;
 
@@ -55,37 +55,35 @@ public class LibraryElementREST implements DozyResource {
 
     @Override
     public void setSyncInterfaces(Map<String, DozySyncI> interfaces) {
-        vod = interfaces.get(DozyVoD.dozyName);
+        vod = interfaces.get(DozyVoD.libraryDozyName);
         if (vod == null) {
             throw new RuntimeException("no sync interface found for vod REST API");
         }
     }
 
+    /**
+     * @param fileInfo {@link se.sics.dozy.vod.model.FileDescJSON type}
+     * @return Response[{@link se.sics.dozy.vod.model.LibraryElementJSON type}]
+     * with OK status or
+     * Response[{@link se.sics.dozy.vod.model.ErrorDescJSON type}] in case of
+     * error
+     */
     @PUT
-    public Response getLibraryContents(FileInfoJSON fileInfo) {
+    public Response getLibraryContents(FileDescJSON fileInfo) {
         LOG.info("received library element request");
         if (!vod.isReady()) {
-            return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity("vod not ready").build();
+            return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(new ErrorDescJSON("vod not ready")).build();
         }
 
         LibraryElementEvent.Request request = new LibraryElementEvent.Request(fileInfo.getName(), new IntIdentifier(fileInfo.getOverlayId()));
-        try {
-            SettableFuture<DozyResult> futureResult = vod.sendReq(request, timeout);
-            LOG.debug("waiting for library element:{} response", request.eventId);
-            DozyResult<LibraryElementEvent.Response> result = futureResult.get();
-            Pair<Response.Status, String> wsStatus = ResponseStatusMapper.resolveLibraryElement(result);
-            LOG.info("library element:{} status:{} details:{}", new Object[]{request.eventId, wsStatus.getValue0(), wsStatus.getValue1()});
-            if (wsStatus.getValue0().equals(Response.Status.OK)) {
-                return Response.status(Response.Status.OK).entity(LibraryElementJSON.resolve(result.getValue())).build();
-            } else {
-                return Response.status(wsStatus.getValue0()).entity(wsStatus.getValue1()).build();
-            }
-        } catch (InterruptedException ex) {
-            LOG.error("library element:{} status:{}", request.eventId, Response.Status.INTERNAL_SERVER_ERROR);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("dozy problem").build();
-        } catch (ExecutionException ex) {
-            LOG.error("library element:{} status:{}", request.eventId, Response.Status.INTERNAL_SERVER_ERROR);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("dozy problem").build();
+        LOG.debug("waiting for library element:{} response", request.eventId);
+        DozyResult<LibraryElementEvent.Response> result = vod.sendReq(request, timeout);
+        Pair<Response.Status, String> wsStatus = ResponseStatusMapper.resolveLibraryElement(result);
+        LOG.info("library element:{} status:{} details:{}", new Object[]{request.eventId, wsStatus.getValue0(), wsStatus.getValue1()});
+        if (wsStatus.getValue0().equals(Response.Status.OK)) {
+            return Response.status(Response.Status.OK).entity(LibraryElementJSON.resolve(result.getValue())).build();
+        } else {
+            return Response.status(wsStatus.getValue0()).entity(new ErrorDescJSON(wsStatus.getValue1())).build();
         }
     }
 }

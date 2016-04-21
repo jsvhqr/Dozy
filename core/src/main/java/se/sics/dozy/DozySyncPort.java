@@ -16,29 +16,16 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package se.sics.dozy.vod.model;
+package se.sics.dozy;
+
+import se.sics.kompics.PortType;
 
 /**
  *
  * @author Alex Ormenisan <aaor@kth.se>
  */
-public class FileInfoJSON {
-    private String fileName;
-    private int overlayId;
-
-    public String getName() {
-        return fileName;
-    }
-
-    public void setName(String name) {
-        this.fileName = name;
-    }
-
-    public int getOverlayId() {
-        return overlayId;
-    }
-
-    public void setOverlayId(int overlayId) {
-        this.overlayId = overlayId;
+public class DozySyncPort extends PortType {
+    {
+        request(DozySyncEvent.class);
     }
 }

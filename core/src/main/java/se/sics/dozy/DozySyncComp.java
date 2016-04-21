@@ -21,6 +21,7 @@ package se.sics.dozy;
 import com.google.common.util.concurrent.SettableFuture;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import org.javatuples.Triplet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ import se.sics.kompics.Component;
 import se.sics.kompics.ComponentDefinition;
 import se.sics.kompics.Handler;
 import se.sics.kompics.KompicsEvent;
+import se.sics.kompics.Negative;
 import se.sics.kompics.PortType;
 import se.sics.kompics.Positive;
 import se.sics.kompics.Start;
@@ -47,8 +49,13 @@ public class DozySyncComp extends ComponentDefinition implements DozySyncI {
     private static final Logger LOG = LoggerFactory.getLogger(DozySyncComp.class);
     private String logPrefix = "";
 
+    //*******************************CONENCTIONS********************************
+    //****************************CONNECT_EXTERNALY*****************************
     private Positive<Timer> timerPort = requires(Timer.class);
     private Positive servicePort;
+    //******************************INTERNAL_ONLY*******************************
+    private Negative<DozySyncPort> selfPort = provides(DozySyncPort.class);
+    //******************************INTERNAL_STATE******************************
     //<reqId, futureResult, timeoutId>
     private Triplet<Identifier, SettableFuture, UUID> pendingJob = null;
 
@@ -58,6 +65,7 @@ public class DozySyncComp extends ComponentDefinition implements DozySyncI {
         servicePort = requires(init.portType);
 
         subscribe(handleStart, control);
+        subscribe(handleRequest, selfPort);
         subscribe(handleTimeout, timerPort);
         for (Class<? extends KompicsEvent> responseType : init.responseTypes) {
             LOG.info("{}subscribing handler for:{} on:{}", new Object[]{logPrefix, responseType, servicePort.getPortType().getClass().getCanonicalName()});
@@ -86,12 +94,17 @@ public class DozySyncComp extends ComponentDefinition implements DozySyncI {
     }
 
     @Override
-    public <E extends KompicsEvent & Identifiable> SettableFuture<DozyResult> sendReq(E req, long timeout) {
-        LOG.info("{}received request:{}", logPrefix, req);
-        trigger(req, servicePort);
-        UUID tId = scheduleRequestTimeout(timeout);
-        SettableFuture result = SettableFuture.create();
-        pendingJob = Triplet.with(req.getId(), result, tId);
+    public <E extends KompicsEvent & Identifiable> DozyResult sendReq(E req, long timeout) {
+        SettableFuture<DozyResult> futureResult = SettableFuture.create();
+        trigger(new DozySyncEvent(req, futureResult, timeout), selfPort.getPair());
+        DozyResult result;
+        try {
+            result = futureResult.get();
+        } catch (InterruptedException ex) {
+            result = DozyResult.internalError("dozy problem");
+        } catch (ExecutionException ex) {
+            result = DozyResult.internalError("dozy problem");
+        }
         return result;
     }
 
@@ -99,7 +112,20 @@ public class DozySyncComp extends ComponentDefinition implements DozySyncI {
         @Override
         public void handle(Start event) {
             LOG.info("{}starting...", logPrefix);
+        }
+    };
 
+    private Handler handleRequest = new Handler<DozySyncEvent<?>>() {
+        @Override
+        public void handle(DozySyncEvent<?> event) {
+            if (pendingJob != null) {
+                event.result.set(DozyResult.internalError("only one call at a time"));
+                return;
+            }
+            LOG.info("{}received request:{}", logPrefix, event.req);
+            UUID tId = scheduleRequestTimeout(event.timeout);
+            pendingJob = Triplet.with(event.req.getId(), event.result, tId);
+            trigger(event.req, servicePort);
         }
     };
 

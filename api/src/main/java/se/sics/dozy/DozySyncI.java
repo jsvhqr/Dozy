@@ -18,15 +18,13 @@
  */
 package se.sics.dozy;
 
-import com.google.common.util.concurrent.SettableFuture;
 import se.sics.kompics.KompicsEvent;
 import se.sics.ktoolbox.util.identifiable.Identifiable;
-import se.sics.ktoolbox.util.identifiable.Identifier;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
 public interface DozySyncI {
     public boolean isReady();
-    public <E extends KompicsEvent & Identifiable> SettableFuture<DozyResult> sendReq(E req, long timeout);
+    public <E extends KompicsEvent & Identifiable> DozyResult sendReq(E req, long timeout);
 }

@@ -100,7 +100,7 @@ public class MockLauncher extends ComponentDefinition {
 
     private void setWebserver() {
         Map<String, DozySyncI> synchronousInterfaces = new HashMap<>();
-        synchronousInterfaces.put(DozyVoD.dozyName, (DozySyncI) librarySyncIComp.getComponent());
+        synchronousInterfaces.put(DozyVoD.libraryDozyName, (DozySyncI) librarySyncIComp.getComponent());
 
         List<DozyResource> resources = new ArrayList<>();
         resources.add(new LibraryContentsREST());

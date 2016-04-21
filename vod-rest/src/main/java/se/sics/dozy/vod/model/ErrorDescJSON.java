@@ -16,12 +16,25 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
-package se.sics.dozy.vod;
+package se.sics.dozy.vod.model;
 
 /**
  * @author Alex Ormenisan <aaor@kth.se>
  */
-public class DozyVoD {
-    public static final String libraryDozyName = "vod-library";
-    public static final String torrentDozyName = "vod-torrent";
+public class ErrorDescJSON {
+    private String details;
+    
+    public ErrorDescJSON(String details) {
+        this.details = details;
+    }
+    
+    public ErrorDescJSON() {}
+
+    public String getDetails() {
+        return details;
+    }
+
+    public void setDetails(String details) {
+        this.details = details;
+    }
 }

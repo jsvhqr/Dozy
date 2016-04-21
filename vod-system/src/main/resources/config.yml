@@ -15,9 +15,12 @@ logging:
     "org.eclipse.jetty": WARN
     "com.sun.jersey": WARN
     "org.hibernate": WARN
+    "com.yammer.dropwizard.config": INFO
     
     "Kompics": WARN
-    "com.yammer.dropwizard.config": INFO
+    "se.sics.kompics": WARN
+    "se.sics.dozy": INFO 
+    
   console:
       enabled: true
 
