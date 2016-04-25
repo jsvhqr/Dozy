@@ -9,4 +9,4 @@ scp root@bbc1.sics.se:/home/hopsworks/johan/hopsworks-chef/.vagrant/machines/def
 
 ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i $key -p $PORT vagrant@${SERVER} "cd DozeDir"
 
-scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i $key -P ${PORT} -r ../../vod-system vagrant@${SERVER}:DozeDir
+scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i $key -P ${PORT} -r ../vod-system vagrant@${SERVER}:DozeDir
