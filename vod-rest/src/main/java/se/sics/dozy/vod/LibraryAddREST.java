@@ -36,6 +36,7 @@ import se.sics.dozy.vod.model.ErrorDescJSON;
 import se.sics.dozy.vod.model.FileDescJSON;
 import se.sics.dozy.vod.model.FileInfoJSON;
 import se.sics.dozy.vod.model.LibraryElementJSON;
+import se.sics.dozy.vod.model.SuccessJSON;
 import se.sics.dozy.vod.util.ResponseStatusMapper;
 import se.sics.gvod.mngr.event.LibraryAddEvent;
 import se.sics.gvod.mngr.event.LibraryElementEvent;
@@ -72,7 +73,7 @@ public class LibraryAddREST implements DozyResource {
      * error
      */
     @PUT
-    public Response getLibraryContents(AddFileJSON addFile) {
+    public Response libraryAdd(AddFileJSON addFile) {
         LOG.info("received library add file request");
         if (!vodLibraryI.isReady()) {
             return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(new ErrorDescJSON("vod not ready")).build();
@@ -80,11 +81,11 @@ public class LibraryAddREST implements DozyResource {
 
         LibraryAddEvent.Request request = new LibraryAddEvent.Request(new IntIdentifier(addFile.getIdentifier()), FileInfoJSON.resolve(addFile.getFileInfo()));
         LOG.debug("waiting for library add file:{} response", request.eventId);
-        DozyResult<LibraryElementEvent.Response> result = vodLibraryI.sendReq(request, timeout);
-        Pair<Response.Status, String> wsStatus = ResponseStatusMapper.resolveLibraryElement(result);
+        DozyResult<LibraryAddEvent.Response> result = vodLibraryI.sendReq(request, timeout);
+        Pair<Response.Status, String> wsStatus = ResponseStatusMapper.resolveLibraryAdd(result);
         LOG.info("library add file:{} status:{} details:{}", new Object[]{request.eventId, wsStatus.getValue0(), wsStatus.getValue1()});
         if (wsStatus.getValue0().equals(Response.Status.OK)) {
-            return Response.status(Response.Status.OK).entity(LibraryElementJSON.resolve(result.getValue())).build();
+            return Response.status(Response.Status.OK).entity(new SuccessJSON()).build();
         } else {
             return Response.status(wsStatus.getValue0()).entity(new ErrorDescJSON(wsStatus.getValue1())).build();
         }

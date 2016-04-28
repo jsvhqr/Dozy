@@ -20,6 +20,7 @@ package se.sics.dozy.vod.util;
 
 import org.javatuples.Pair;
 import se.sics.dozy.DozyResult;
+import se.sics.gvod.mngr.event.LibraryAddEvent;
 import se.sics.gvod.mngr.event.LibraryContentsEvent;
 import se.sics.gvod.mngr.event.LibraryElementEvent;
 import se.sics.gvod.mngr.event.TorrentDownloadEvent;
@@ -36,6 +37,10 @@ public class ResponseStatusMapper {
     }
 
     public static Pair<javax.ws.rs.core.Response.Status, String> resolveLibraryElement(DozyResult<LibraryElementEvent.Response> result) {
+        return resolve(result, (result.hasValue() ? result.getValue().result : null));
+    }
+    
+    public static Pair<javax.ws.rs.core.Response.Status, String> resolveLibraryAdd(DozyResult<LibraryAddEvent.Response> result) {
         return resolve(result, (result.hasValue() ? result.getValue().result : null));
     }
 
