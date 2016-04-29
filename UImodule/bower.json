@@ -1,5 +1,5 @@
 {
-  "name": "uimodule",
+  "name": "gvod-uimodule",
   "version": "0.0.1",
     "main": "partials/gvodPartialsModule.js",
     "ignore": [
